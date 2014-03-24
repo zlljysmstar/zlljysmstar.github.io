@@ -3,13 +3,14 @@ layout: post
 title: "Apache Hadoop 运行分布式程序方法总结（Streaming方式与原生JAVA接口）"
 date: 2014-03-23 13:49:11 +0800
 comments: true
-categories: 
+categories: Hadoop 
 ---
 
-1. Hadoop Streaming方式运行程序<br/>
+##1. Hadoop Streaming方式运行程序<br/>
 Hadoop Streaming可以运行除JAVA语言以外，其它的语言编写的程序。其启动脚本示例如下：
+<!--more-->
 {% include_code shell/hadoop_streaming_startup.sh %}
-2. JAVA原生接口编写HADOOP程序<br/>
+##2. JAVA原生接口编写HADOOP程序<br/>
 第一步，需要将用JAVA编写的代码打包成JAR包。
 {% include_code java/MaxTemperatureMapper.java %}
 {% include_code java/MaxTemperatureReducer.java %}

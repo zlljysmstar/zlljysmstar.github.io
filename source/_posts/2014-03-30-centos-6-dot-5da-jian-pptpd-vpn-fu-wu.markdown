@@ -54,3 +54,9 @@ pptpd
 ##7. 相关说明<br/>
 7.1&nbsp;&nbsp;VPN连接类型建议选择：点对点隧道协议（PPTP）<br/>
 7.2&nbsp;&nbsp;IP设置里面，不要选择“在远程网络上使用默认网关”<br/>
+7.3&nbsp;&nbsp;设置防火墙允许53,1723,47端口的访问<br/>
+```plain /etc/sysconfig/iptables
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 53 -j ACCEPT
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 1723 -j ACCEPT
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 47 -j ACCEPT
+```

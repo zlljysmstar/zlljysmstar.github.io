@@ -11,3 +11,4 @@ iptables -Z
 
 #Add SNAT Feature
 iptables -t nat -A POSTROUTING -o p4pl -s 192.168.0.0/24 -j SNAT --to 192.168.1.202
+iptables -A FORWARD -p tcp --syn -s 192.168.0.0/24 -j TCPMSS --set-mss 1356

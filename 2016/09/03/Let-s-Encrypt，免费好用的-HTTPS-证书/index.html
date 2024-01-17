@@ -1,0 +1,465 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Let&#39;s Encrypt，免费好用的 HTTPS 证书 | My Personal Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Liang Zhu">
+    
+    <meta name="description" content="很早之前我就在关注 Let’s Encrypt 这个免费、自动化、开放的证书签发服务。它由 ISRG（Internet Security Research Group，互联网安全研究小组）提供服务，而 ISRG 是来自于美国加利福尼亚州的一个公益组织。Let’s Encrypt 得到了 Mozill">
+    
+    
+    
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/pacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/pacman.jpg">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.svg" alt="My Personal Blog" title="My Personal Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="My Personal Blog">My Personal Blog</a></h1>
+				<h2 class="blog-motto">天行健，君子以自强不息。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					
+						<li><a href="/">博客</a></li>
+					
+						<li><a href="/archives">存档</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="text" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:www.zhuliang.net.cn">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+        <!--<script>QIHOO_UNION_F_SLOT={w:120, h:300, ls:"s0b6d141c8d",position:3,display:0,origin:2};</script>
+        <script src="http://s.lianmeng.360.cn/so/f.js" charset="utf-8"></script>-->
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/09/03/Let-s-Encrypt，免费好用的-HTTPS-证书/" title="Let&#39;s Encrypt，免费好用的 HTTPS 证书" itemprop="url">Let&#39;s Encrypt，免费好用的 HTTPS 证书</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://www.zhuliang.net.cn" title="Liang Zhu">Liang Zhu</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2016-09-03T12:28:33.000Z" itemprop="datePublished">2016-09-03</time>
+    更新日期:<time datetime="2023-07-20T14:38:05.102Z" itemprop="dateModified">2023-07-20</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E5%B8%90%E5%8F%B7"><span class="toc-number">1.</span> <span class="toc-text">创建帐号</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA-CSR-%E6%96%87%E4%BB%B6"><span class="toc-number">2.</span> <span class="toc-text">创建 CSR 文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E9%AA%8C%E8%AF%81%E6%9C%8D%E5%8A%A1"><span class="toc-number">3.</span> <span class="toc-text">配置验证服务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E7%BD%91%E7%AB%99%E8%AF%81%E4%B9%A6"><span class="toc-number">4.</span> <span class="toc-text">获取网站证书</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E8%87%AA%E5%8A%A8%E6%9B%B4%E6%96%B0"><span class="toc-number">5.</span> <span class="toc-text">配置自动更新</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%A0%E4%B8%AA%E9%97%AE%E9%A2%98"><span class="toc-number">6.</span> <span class="toc-text">几个问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#References"><span class="toc-number">7.</span> <span class="toc-text">References</span></a></li></ol>
+		</div>
+		
+		<p>很早之前我就在关注 Let’s Encrypt 这个免费、自动化、开放的证书签发服务。它由 ISRG（Internet Security Research Group，互联网安全研究小组）提供服务，而 ISRG 是来自于美国加利福尼亚州的一个公益组织。Let’s Encrypt 得到了 Mozilla、Cisco、Akamai、Electronic Frontier Foundation 和 Chrome 等众多公司和机构的支持，发展十分迅猛。</p>
+<p>申请 Let’s Encrypt 证书不但免费，还非常简单，虽然每次只有 90 天的有效期，但可以通过脚本定期更新，配好之后一劳永逸。经过一段时间的观望，我也正式启用 Let’s Encrypt 证书了，本文记录本站申请过程和遇到的问题。</p>
+<p>我没有使用 Let’s Encrypt 官网提供的工具来申请证书，而是用了 acme-tiny 这个更为小巧的开源工具。以下内容基本按照 acme-tiny 的说明文档写的，省略了一些我不需要的步骤。</p>
+<p>ACME 全称是 Automated Certificate Management Environment，直译过来是自动化证书管理环境的意思，Let’s Encrypt 的证书签发过程使用的就是 ACME 协议。有关 ACME 协议的更多资料可以在这个仓库找到。</p>
+<h2 id="创建帐号"><a href="#创建帐号" class="headerlink" title="创建帐号"></a>创建帐号</h2><p>首先创建一个目录，例如 ssl，用来存放各种临时文件和最后的证书文件。进入这个目录，创建一个 RSA 私钥用于 Let’s Encrypt 识别你的身份：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl genrsa 4096 &gt; account.key</span><br></pre></td></tr></table></figure>
+
+<h2 id="创建-CSR-文件"><a href="#创建-CSR-文件" class="headerlink" title="创建 CSR 文件"></a>创建 CSR 文件</h2><p>接着就可以生成 CSR（Certificate Signing Request，证书签名请求）文件了。在这之前，还需要创建域名私钥（一定不要使用上面的账户私钥），根据证书不同类型，域名私钥也可以选择 RSA 和 ECC 两种不同类型。以下两种方式请根据实际情况二选一。</p>
+<p>1）创建 RSA 私钥（兼容性好）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl genrsa 4096 &gt; domain.key</span><br></pre></td></tr></table></figure>
+
+<p>2）创建 ECC 私钥（部分老旧操作系统、浏览器不支持。优点是证书体积小）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#secp256r1</span></span><br><span class="line">openssl ecparam -genkey -name secp256r1 | openssl ec -out domain.key</span><br><span class="line"></span><br><span class="line"><span class="comment">#secp384r1</span></span><br><span class="line">openssl ecparam -genkey -name secp384r1 | openssl ec -out domain.key</span><br></pre></td></tr></table></figure>
+
+<p>有关 ECC 证书的更多介绍，请<a target="_blank" rel="noopener" href="https://imququ.com/post/optimize-tls-handshake.html#toc-2-1">点击这里</a>。</p>
+<p>有了私钥文件，就可以生成 CSR 文件了。在 CSR 中推荐至少把域名带 www 和不带 www 的两种情况都加进去，其它子域可以根据需要添加（目前一张证书最多可以包含 100 个域名）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">openssl req -new -sha256 -key domain.key -subj <span class="string">&quot;/&quot;</span> -reqexts SAN -config &lt;(<span class="built_in">cat</span> /etc/ssl/openssl.cnf &lt;(<span class="built_in">printf</span> <span class="string">&quot;</span></span><br><span class="line"><span class="string">[SAN]\nsubjectAltName=DNS:yoursite.com,DNS:www.yoursite.com&quot;</span>)) &gt; domain.csr</span><br></pre></td></tr></table></figure>
+
+<p>执行这一步时，如果提示找不到 /etc/ssl/openssl.cnf 文件，请看看 /usr/local/openssl/ssl/openssl.cnf 是否存在。如果还是不行，也可以使用交互方式创建 CSR（需要注意 Common Name 必须为你的域名）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl req -new -sha256 -key domain.key -out domain.csr</span><br></pre></td></tr></table></figure>
+
+<h2 id="配置验证服务"><a href="#配置验证服务" class="headerlink" title="配置验证服务"></a>配置验证服务</h2><p>我们知道，CA 在签发 DV（Domain Validation）证书时，需要验证域名所有权。传统 CA 的验证方式一般是往 <a href="mailto:admin@yoursite.com">admin@yoursite.com</a> 发验证邮件，而 Let’s Encrypt 是在你的服务器上生成一个随机验证文件，再通过创建 CSR 时指定的域名访问，如果可以访问则表明你对这个域名有控制权。</p>
+<p>首先创建用于存放验证文件的目录，例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> ~/www/challenges/</span><br></pre></td></tr></table></figure>
+
+<p>然后配置一个 HTTP 服务，以 Nginx 为例：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    server_name www.yoursite.com yoursite.com;</span><br><span class="line"></span><br><span class="line">    location ^~ /.well-known/acme-challenge/ &#123;</span><br><span class="line">        <span class="built_in">alias</span> /home/xxx/www/challenges/;</span><br><span class="line">        try_files <span class="variable">$uri</span> =404;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        rewrite ^/(.*)$ https://yoursite.com/<span class="variable">$1</span> permanent;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>以上配置优先查找 ~/www/challenges/ 目录下的文件，如果找不到就重定向到 HTTPS 地址。这个验证服务以后更新证书还要用到，建议一直保留。</p>
+<h2 id="获取网站证书"><a href="#获取网站证书" class="headerlink" title="获取网站证书"></a>获取网站证书</h2><p>先把 acme-tiny 脚本保存到之前的 ssl 目录：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget https://raw.githubusercontent.com/diafygi/acme-tiny/master/acme_tiny.py</span><br></pre></td></tr></table></figure>
+
+<p>指定账户私钥、CSR 以及验证目录，执行脚本：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python acme_tiny.py --account-key ./account.key --csr ./domain.csr --acme-dir ~/www/challenges/ &gt; ./signed.crt</span><br></pre></td></tr></table></figure>
+
+<p>如果一切正常，当前目录下就会生成一个 signed.crt，这就是申请好的证书文件。</p>
+<p>如果你把域名 DNS 解析放在国内，这一步很可能会遇到类似这样的错误：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ValueError: Wrote file to /home/xxx/www/challenges/oJbvpIhkwkBGBAQUklWJXyC8VbWAdQqlgpwUJkgC1Vg, but couldn\&#x27;t download http://www.yoursite.com/.well-known/acme-challenge/oJbvpIhkwkBGBAQUklWJXyC8VbWAdQqlgpwUJkgC1Vg</span><br></pre></td></tr></table></figure>
+
+<p>这是因为你的域名很可能在国外无法解析，可以找台国外 VPS 验证下。我的域名最近从 DNSPod 换到了阿里云解析，最后又换到了 CloudXNS，就是因为最近前两家在国外都很不稳定。如果你也遇到了类似情况，可以暂时使用国外的 DNS 解析服务商，例如 dns.he.net。如果还是搞不定，也可以试试「Neilpang/le」这个工具的 DNS Mode。</p>
+<p>搞定网站证书后，还要下载 Let’s Encrypt 的中间证书。我在之前的文章中讲过，配置 HTTPS 证书时既不要漏掉中间证书，也不要包含根证书。在 Nginx 配置中，需要把中间证书和网站证书合在一起：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">wget -O - https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem &gt; intermediate.pem</span><br><span class="line"><span class="built_in">cat</span> signed.crt intermediate.pem &gt; chained.pem</span><br></pre></td></tr></table></figure>
+
+<p>为了后续能顺利启用 OCSP Stapling，我们再把根证书和中间证书合在一起：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">wget -O - https://letsencrypt.org/certs/isrgrootx1.pem &gt; root.pem</span><br><span class="line"><span class="built_in">cat</span> intermediate.pem root.pem &gt; full_chained.pem</span><br></pre></td></tr></table></figure>
+
+<p>最终，修改 Nginx 中有关证书的配置并 reload 服务即可：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ssl_certificate     ~/www/ssl/chained.pem;</span><br><span class="line">ssl_certificate_key ~/www/ssl/domain.key;</span><br></pre></td></tr></table></figure>
+
+<p>Nginx 中与 HTTPS 有关的配置项很多，这里不一一列举了.</p>
+<h2 id="配置自动更新"><a href="#配置自动更新" class="headerlink" title="配置自动更新"></a>配置自动更新</h2><p>Let’s Encrypt 签发的证书只有 90 天有效期，推荐使用脚本定期更新。例如我就创建了一个 renew_cert.sh 并通过 chmod a+x renew_cert.sh 赋予执行权限。文件内容如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> /home/xxx/www/ssl/</span><br><span class="line">python acme_tiny.py --account-key account.key --csr domain.csr --acme-dir /home/xxx/www/challenges/ &gt; signed.crt || <span class="built_in">exit</span></span><br><span class="line">wget -O - https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem &gt; intermediate.pem</span><br><span class="line"><span class="built_in">cat</span> signed.crt intermediate.pem &gt; chained.pem</span><br><span class="line">service nginx reload</span><br></pre></td></tr></table></figure>
+
+<p>crontab 中使用绝对路径比较保险，crontab -e 加入以下内容：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">0 0 1 * * /home/xxx/shell/renew_cert.sh &gt;/dev/null 2&gt;&amp;1</span><br></pre></td></tr></table></figure>
+
+<p>这样以后证书每个月都会自动更新，一劳永逸。实际上，Let’s Encrypt 官方将证书有效期定为 90 天一方面是为了更安全，更重要的是鼓励用户采用自动化部署方案。</p>
+<h2 id="几个问题"><a href="#几个问题" class="headerlink" title="几个问题"></a>几个问题</h2><p>Let’s Encrypt 证书的兼容性，所有操作系统、浏览器默认是否都能识别是大家最关心的问题。实际上，由于 Let’s Encrypt 与 IdenTrust 的 DST Root CA 做了交叉认证，兼容性还是不错的，目前我只是发现在 Android 2 和 Windows XP 下有问题（Firefox 的证书那一套是自己实现的，不依赖于系统，XP 下只有 Firefox 信任 Let’s Encrypt 证书），其它环境都正常。</p>
+<p>（Windows XP 不信任 Let’s Encrypt 的中间证书）</p>
+<p>更新：根据 Let’s Encrypt 官方说明，Windows XP 下的问题很快就会解决：</p>
+<blockquote>
+<p>A bug in Windows XP causes parsing of our current cross-signature from IdenTrust to fail. We will be correcting this by getting new cross-signatures from IdenTrust which work on Windows XP.<br>注：已于 2016 年 3 月 26 日解决。</p>
+</blockquote>
+<p>另外一个问题有关 ECC 证书，官网表示计划将在 2016 年提供对 ECC 证书的支持：</p>
+<blockquote>
+<p>Right now all of our root and intermediate keys use RSA. We’re planning to generate ECC keys and make an ECC option available to subscribers in 2016. via<br>注：Let’s Encrypt 已于 2016 年 2 月 11 日开始支持签发 ECC 证书。</p>
+</blockquote>
+<p>Let’s Encrypt 官方的新特性预告可以在<a target="_blank" rel="noopener" href="https://letsencrypt.org/upcoming-features/">这个页面查看</a>。</p>
+<p>我个人建议：对于个人用户来说，如果非常在意证书兼容性，可以购买 RapidSSL Standard 或者 Comodo<br>Positive SSL 这两种证书。其中 RapidSSL 证书一共才三级，比较小；Comodo Positive 有四级，但可以申请 ECC 证书；二者都有着不错的兼容性，也非常廉价（一年不到 10$）。当然，如果不用考虑 Windows XP 用户，那么强烈推荐 Let&#39;s Encrypt！</p>
+<p>更新：Let’s Encrypt 已经支持 Windows XP 和签发 ECC 证书，对于个人用户来说，目前 Let’s Encrypt 无疑是最好的选择。</p>
+<p>本文先写到这里，如果你在申请 Let’s Encrypt 证书的过程中遇到问题，可以给我留言，也欢迎交流各种心得！</p>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://imququ.com/post/letsencrypt-certificate.html">Let’s Encrypt，免费好用的 HTTPS 证书</a></li>
+<li><a target="_blank" rel="noopener" href="https://imququ.com/post/my-nginx-conf.html">本博客 Nginx 配置之完整篇</a></li>
+<li><a target="_blank" rel="noopener" href="https://imququ.com/post/ecc-certificate.html">开始使用ECC证书</a></li>
+<li><a target="_blank" rel="noopener" href="https://imququ.com/post/moving-to-https-asap.html">为什么我们应该尽快升级到 HTTPS？</a></li>
+<li><a target="_blank" rel="noopener" href="https://imququ.com/post/optimize-tls-handshake.html">TLS 握手优化详解</a></li>
+</ul>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://www.zhuliang.net.cn/2016/09/03/Let-s-Encrypt%EF%BC%8C%E5%85%8D%E8%B4%B9%E5%A5%BD%E7%94%A8%E7%9A%84-HTTPS-%E8%AF%81%E4%B9%A6/" data-title="Let&#39;s Encrypt，免费好用的 HTTPS 证书 | My Personal Blog" data-tsina="2726688057" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/09/03/CentOS-5-4安装GCC-4-9-3/" title="CentOS 5.4安装GCC 4.9.3">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  CentOS 5.4安装GCC 4.9.3</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/09/03/内存深度检测利器-Valgrind/"  title="内存深度检测利器 -- Valgrind">
+ <strong>NEXT:</strong><br/> 
+ <span>内存深度检测利器 -- Valgrind
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E5%B8%90%E5%8F%B7"><span class="toc-number">1.</span> <span class="toc-text">创建帐号</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA-CSR-%E6%96%87%E4%BB%B6"><span class="toc-number">2.</span> <span class="toc-text">创建 CSR 文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E9%AA%8C%E8%AF%81%E6%9C%8D%E5%8A%A1"><span class="toc-number">3.</span> <span class="toc-text">配置验证服务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E7%BD%91%E7%AB%99%E8%AF%81%E4%B9%A6"><span class="toc-number">4.</span> <span class="toc-text">获取网站证书</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E8%87%AA%E5%8A%A8%E6%9B%B4%E6%96%B0"><span class="toc-number">5.</span> <span class="toc-text">配置自动更新</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%A0%E4%B8%AA%E9%97%AE%E9%A2%98"><span class="toc-number">6.</span> <span class="toc-text">几个问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#References"><span class="toc-number">7.</span> <span class="toc-text">References</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/技术交流/" title="技术交流">技术交流<sup>7</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/C/" title="C++">C++<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Git/" title="Git">Git<sup>2</sup></a></li>
+		
+			<li><a href="/tags/INTEL/" title="INTEL">INTEL<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>6</sup></a></li>
+		
+			<li><a href="/tags/PHP/" title="PHP">PHP<sup>1</sup></a></li>
+		
+			<li><a href="/tags/PyTorch/" title="PyTorch">PyTorch<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Windows/" title="Windows">Windows<sup>1</sup></a></li>
+		
+			<li><a href="/tags/base64/" title="base64">base64<sup>2</sup></a></li>
+		
+			<li><a href="/tags/boost/" title="boost">boost<sup>2</sup></a></li>
+		
+			<li><a href="/tags/os-kernel/" title="os-kernel">os-kernel<sup>1</sup></a></li>
+		
+			<li><a href="/tags/极速软件/" title="极速软件">极速软件<sup>1</sup></a></li>
+		
+			<li><a href="/tags/网络服务/" title="网络服务">网络服务<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="rsspart">
+	<a href="" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="https://www.aia.com.cn/zh-cn/index.html" target="_blank" title="友邦人寿官方网站">友邦人寿官方网站</a></li>
+      <!--<li><a href="http://home.jisuonline.com" target="_blank" title="极速在线官方网站">极速在线官方网站</a></li>
+      <li><a href="http://www.zhuliang.net.cn/service/index.html" target="_blank" title="极速在线旗下统一服务编程框架">极速在线旗下统一服务编程框架</a></li>
+      <li><a href="https://www.haosou.com" target="_blank" title="Hexo">好搜(原360搜索)</a></li>
+      <li><a href="/wedding/360.html" target="_blank" title="Hexo">360公司第三届集体婚礼</a></li>-->
+    </ul>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hey, I&#39;m Liang Zhu. A NLP Researcher and Developer in Qihoo 360. <br/>
+			Natural Language Processing and Data Mining are my interests which I&#39;d like to share with you at this blog.</p>
+	</section>
+	 
+	<div class="social-font clearfix">
+		
+		<a href="http://weibo.com/2726688057" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/zlljysmstar" target="_blank" title="github"></a>
+		
+		
+		<a href="https://www.facebook.com/bjzhuliang" target="_blank" title="facebook"></a>
+		
+		
+	</div>
+		<p class="copyright">Powered by <a href="http://www.zhuliang.net.cn" target="_blank" title="zhuliang.net.cn">zhuliang.net.cn</a> and Theme by <a href="https://github.com/zlljysmstar/x-speed" target="_blank" title="X-Speed">X-Speed</a> © 2024 
+		
+		<a href="http://www.zhuliang.net.cn" target="_blank" title="Liang Zhu">Liang Zhu</a>
+		
+        <a target="_blank" href="https://beian.miit.gov.cn" style="display:inline-block;text-decoration:none;"><span style="font-family:微软雅黑; padding-left:10px;">京ICP备14057753号-3</span></a>
+        <div style="width:300px;margin:0 auto; padding:20px 0;">
+          <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=11010502042547" style="display:inline-block;text-decoration:none;height:20px;line-height:20px;"><img src="/download/beian/beian.png" style="float:left;"/><p style="float:left;height:20px;line-height:20px;margin: 0px 0px 0px 5px; color:#939393;">京公网安备11010502042547号</p></a>
+        </div>
+		</p>
+        <!--<script>QIHOO_UNION_F_SLOT={w:500, h:48, ls:"s5bcb0a038f",position:6,display:1,origin:0};</script>
+        <script src="http://s.lianmeng.360.cn/so/f.js" charset="utf-8"></script>-->
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:""};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+      var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?0b81925365c80d715e10b7ace3669922";
+          var s = document.getElementsByTagName("script")[0]; 
+            s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+  </body>
+</html>

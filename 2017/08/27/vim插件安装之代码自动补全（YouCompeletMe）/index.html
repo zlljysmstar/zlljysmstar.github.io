@@ -1,0 +1,479 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>vim插件安装之代码自动补全（YouCompeletMe） | My Personal Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Liang Zhu">
+    
+    <meta name="description" content="官方说明
+GitHub官方地址
+安装说明
+
+
+YouCompleteMe is a fast, as-you-type, fuzzy-search code completion engine for Vim
+
+
+安装步骤详解前置依赖安装VIM
+推荐安装8.0以上版本（包括Vi IMproved 8">
+    
+    
+    
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/pacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/pacman.jpg">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.svg" alt="My Personal Blog" title="My Personal Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="My Personal Blog">My Personal Blog</a></h1>
+				<h2 class="blog-motto">天行健，君子以自强不息。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					
+						<li><a href="/">博客</a></li>
+					
+						<li><a href="/archives">存档</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="text" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:www.zhuliang.net.cn">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+        <!--<script>QIHOO_UNION_F_SLOT={w:120, h:300, ls:"s0b6d141c8d",position:3,display:0,origin:2};</script>
+        <script src="http://s.lianmeng.360.cn/so/f.js" charset="utf-8"></script>-->
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/08/27/vim插件安装之代码自动补全（YouCompeletMe）/" title="vim插件安装之代码自动补全（YouCompeletMe）" itemprop="url">vim插件安装之代码自动补全（YouCompeletMe）</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://www.zhuliang.net.cn" title="Liang Zhu">Liang Zhu</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2017-08-27T07:51:37.000Z" itemprop="datePublished">2017-08-27</time>
+    更新日期:<time datetime="2023-07-20T14:38:05.107Z" itemprop="dateModified">2023-07-20</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%98%E6%96%B9%E8%AF%B4%E6%98%8E"><span class="toc-number">1.</span> <span class="toc-text">官方说明</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E6%AD%A5%E9%AA%A4%E8%AF%A6%E8%A7%A3"><span class="toc-number">2.</span> <span class="toc-text">安装步骤详解</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E7%BD%AE%E4%BE%9D%E8%B5%96%E5%AE%89%E8%A3%85"><span class="toc-number">2.1.</span> <span class="toc-text">前置依赖安装</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#VIM"><span class="toc-number">2.1.1.</span> <span class="toc-text">VIM</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#LLVM-amp-Clang"><span class="toc-number">2.1.2.</span> <span class="toc-text">LLVM &amp; Clang</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%8F%92%E4%BB%B6%E5%AE%89%E8%A3%85"><span class="toc-number">2.2.</span> <span class="toc-text">核心插件安装</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#YCM"><span class="toc-number">2.2.1.</span> <span class="toc-text">YCM</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE"><span class="toc-number">2.2.2.</span> <span class="toc-text">配置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E6%A3%80%E6%B5%8B"><span class="toc-number">2.3.</span> <span class="toc-text">安装检测</span></a></li></ol></li></ol>
+		</div>
+		
+		<h1 id="官方说明"><a href="#官方说明" class="headerlink" title="官方说明"></a>官方说明</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/Valloric/YouCompleteMe">GitHub官方地址</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/Valloric/YouCompleteMe#full-installation-guide">安装说明</a></li>
+</ul>
+<blockquote>
+<p>YouCompleteMe is a fast, as-you-type, fuzzy-search code completion engine for Vim</p>
+</blockquote>
+<p><img src="201708271556-vim-youcompleteme.gif" alt="官方自动补全示例"></p>
+<h1 id="安装步骤详解"><a href="#安装步骤详解" class="headerlink" title="安装步骤详解"></a>安装步骤详解</h1><h2 id="前置依赖安装"><a href="#前置依赖安装" class="headerlink" title="前置依赖安装"></a>前置依赖安装</h2><h3 id="VIM"><a href="#VIM" class="headerlink" title="VIM"></a>VIM</h3><blockquote>
+<p>推荐安装8.0以上版本（包括Vi IMproved 8.0）</p>
+</blockquote>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/vim/vim">下载地址</a></li>
+<li>编译命令<ul>
+<li>重点：必须编译vim时，启动python支持，最低python版本要求：2.7.0</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./configure  --enable-pythoninterp=<span class="built_in">yes</span> --with-python-config-dir=/usr/bin/python2-config</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>可以通过如下命令判断是否安装成功vim（支持python的vim）</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">:<span class="built_in">echo</span> has(<span class="string">&#x27;python&#x27;</span>) || has(<span class="string">&#x27;python3&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="LLVM-amp-Clang"><a href="#LLVM-amp-Clang" class="headerlink" title="LLVM &amp; Clang"></a>LLVM &amp; Clang</h3><blockquote>
+<p>推荐使用官方源码自行编译安装</p>
+</blockquote>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://llvm.org/releases/download.html">官方下载页面</a></li>
+<li>LLVM 4.0.1: <a target="_blank" rel="noopener" href="http://releases.llvm.org/4.0.1/llvm-4.0.1.src.tar.xz">http://releases.llvm.org/4.0.1/llvm-4.0.1.src.tar.xz</a></li>
+<li>Clang 4.0.1: <a target="_blank" rel="noopener" href="http://releases.llvm.org/4.0.1/cfe-4.0.1.src.tar.xz">http://releases.llvm.org/4.0.1/cfe-4.0.1.src.tar.xz</a></li>
+<li>NOTICE: /usr/local/lib/libclang.so.4</li>
+</ul>
+<h2 id="核心插件安装"><a href="#核心插件安装" class="headerlink" title="核心插件安装"></a>核心插件安装</h2><h3 id="YCM"><a href="#YCM" class="headerlink" title="YCM"></a>YCM</h3><ul>
+<li>通过bundle来安装</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Bundle <span class="string">&#x27;Valloric/YouCompleteMe&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>GitHub</p>
+<ul>
+<li>git submodule update –init –recursive</li>
+</ul>
+</li>
+<li><p>Build ycm_core</p>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> ~/.ycm_build</span><br><span class="line"><span class="built_in">cd</span> ~/.ycm_build</span><br><span class="line">cmake -G <span class="string">&quot;Unix Makefiles&quot;</span> -DUSE_SYSTEM_BOOST=ON -DEXTERNAL_LIBCLANG_PATH=/usr/lib64/llvm/libclang.so . ~/.vim/bundle/YouCompleteMe/third_party/ycmd/cpp</span><br><span class="line">cmake --build . --target ycm_core --config Release</span><br></pre></td></tr></table></figure>
+
+<p>或者可以通过官方安装脚本来编译并部署</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~/.vim/bundle/YouCompleteMe</span><br><span class="line">./install.py --clang-completer --system-libclang</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Check<ul>
+<li>成功安装标志：在如下目录存在libclang.so.4软链接，且源文件存在</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>~/.vim/bundle/YouCompleteMe/third_party/ycmd</p>
+</blockquote>
+<h3 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h3><ul>
+<li>复制.ycm_extra_conf.py文件</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cp</span> ~/.vim/bundle/YouCompleteMe/third_party/ycmd/examples/.ycm_extra_conf.py ~/.vim/</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>添加vim配置<ul>
+<li>注意下面的 python 解释器的路径要和编译 ycm_core 的时候使用的 python 解释器是相同的版本（2 或 3）</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">let</span> g:ycm_server_python_interpreter=<span class="string">&#x27;/usr/bin/python&#x27;</span></span><br><span class="line"><span class="built_in">let</span> g:ycm_global_ycm_extra_conf=<span class="string">&#x27;~/.vim/.ycm_extra_conf.py&#x27;</span></span><br><span class="line"><span class="built_in">let</span> g:ycm_keep_logfiles=1</span><br><span class="line"><span class="built_in">let</span> g:ycm_log_level=<span class="string">&#x27;debug&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="安装检测"><a href="#安装检测" class="headerlink" title="安装检测"></a>安装检测</h2><blockquote>
+<p>:YcmToggleLogs stderr</p>
+</blockquote>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Linux/">Linux</a>
+  </div>
+
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://www.zhuliang.net.cn/2017/08/27/vim%E6%8F%92%E4%BB%B6%E5%AE%89%E8%A3%85%E4%B9%8B%E4%BB%A3%E7%A0%81%E8%87%AA%E5%8A%A8%E8%A1%A5%E5%85%A8%EF%BC%88YouCompeletMe%EF%BC%89/" data-title="vim插件安装之代码自动补全（YouCompeletMe） | My Personal Blog" data-tsina="2726688057" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2018/01/06/Windows-10-桌面图标显示异常解决方法/" title="Windows 10 桌面图标显示异常解决方法">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  Windows 10 桌面图标显示异常解决方法</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/10/09/时隔N年，再次遇到这个GCC-BUG/"  title="时隔N年，再次遇到这个GCC BUG">
+ <strong>NEXT:</strong><br/> 
+ <span>时隔N年，再次遇到这个GCC BUG
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%98%E6%96%B9%E8%AF%B4%E6%98%8E"><span class="toc-number">1.</span> <span class="toc-text">官方说明</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E6%AD%A5%E9%AA%A4%E8%AF%A6%E8%A7%A3"><span class="toc-number">2.</span> <span class="toc-text">安装步骤详解</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E7%BD%AE%E4%BE%9D%E8%B5%96%E5%AE%89%E8%A3%85"><span class="toc-number">2.1.</span> <span class="toc-text">前置依赖安装</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#VIM"><span class="toc-number">2.1.1.</span> <span class="toc-text">VIM</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#LLVM-amp-Clang"><span class="toc-number">2.1.2.</span> <span class="toc-text">LLVM &amp; Clang</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%8F%92%E4%BB%B6%E5%AE%89%E8%A3%85"><span class="toc-number">2.2.</span> <span class="toc-text">核心插件安装</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#YCM"><span class="toc-number">2.2.1.</span> <span class="toc-text">YCM</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE"><span class="toc-number">2.2.2.</span> <span class="toc-text">配置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E6%A3%80%E6%B5%8B"><span class="toc-number">2.3.</span> <span class="toc-text">安装检测</span></a></li></ol></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/技术交流/" title="技术交流">技术交流<sup>7</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/C/" title="C++">C++<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Git/" title="Git">Git<sup>2</sup></a></li>
+		
+			<li><a href="/tags/INTEL/" title="INTEL">INTEL<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>6</sup></a></li>
+		
+			<li><a href="/tags/PHP/" title="PHP">PHP<sup>1</sup></a></li>
+		
+			<li><a href="/tags/PyTorch/" title="PyTorch">PyTorch<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Windows/" title="Windows">Windows<sup>1</sup></a></li>
+		
+			<li><a href="/tags/base64/" title="base64">base64<sup>2</sup></a></li>
+		
+			<li><a href="/tags/boost/" title="boost">boost<sup>2</sup></a></li>
+		
+			<li><a href="/tags/os-kernel/" title="os-kernel">os-kernel<sup>1</sup></a></li>
+		
+			<li><a href="/tags/极速软件/" title="极速软件">极速软件<sup>1</sup></a></li>
+		
+			<li><a href="/tags/网络服务/" title="网络服务">网络服务<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="rsspart">
+	<a href="" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="https://www.aia.com.cn/zh-cn/index.html" target="_blank" title="友邦人寿官方网站">友邦人寿官方网站</a></li>
+      <!--<li><a href="http://home.jisuonline.com" target="_blank" title="极速在线官方网站">极速在线官方网站</a></li>
+      <li><a href="http://www.zhuliang.net.cn/service/index.html" target="_blank" title="极速在线旗下统一服务编程框架">极速在线旗下统一服务编程框架</a></li>
+      <li><a href="https://www.haosou.com" target="_blank" title="Hexo">好搜(原360搜索)</a></li>
+      <li><a href="/wedding/360.html" target="_blank" title="Hexo">360公司第三届集体婚礼</a></li>-->
+    </ul>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hey, I&#39;m Liang Zhu. A NLP Researcher and Developer in Qihoo 360. <br/>
+			Natural Language Processing and Data Mining are my interests which I&#39;d like to share with you at this blog.</p>
+	</section>
+	 
+	<div class="social-font clearfix">
+		
+		<a href="http://weibo.com/2726688057" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/zlljysmstar" target="_blank" title="github"></a>
+		
+		
+		<a href="https://www.facebook.com/bjzhuliang" target="_blank" title="facebook"></a>
+		
+		
+	</div>
+		<p class="copyright">Powered by <a href="http://www.zhuliang.net.cn" target="_blank" title="zhuliang.net.cn">zhuliang.net.cn</a> and Theme by <a href="https://github.com/zlljysmstar/x-speed" target="_blank" title="X-Speed">X-Speed</a> © 2024 
+		
+		<a href="http://www.zhuliang.net.cn" target="_blank" title="Liang Zhu">Liang Zhu</a>
+		
+        <a target="_blank" href="https://beian.miit.gov.cn" style="display:inline-block;text-decoration:none;"><span style="font-family:微软雅黑; padding-left:10px;">京ICP备14057753号-3</span></a>
+        <div style="width:300px;margin:0 auto; padding:20px 0;">
+          <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=11010502042547" style="display:inline-block;text-decoration:none;height:20px;line-height:20px;"><img src="/download/beian/beian.png" style="float:left;"/><p style="float:left;height:20px;line-height:20px;margin: 0px 0px 0px 5px; color:#939393;">京公网安备11010502042547号</p></a>
+        </div>
+		</p>
+        <!--<script>QIHOO_UNION_F_SLOT={w:500, h:48, ls:"s5bcb0a038f",position:6,display:1,origin:0};</script>
+        <script src="http://s.lianmeng.360.cn/so/f.js" charset="utf-8"></script>-->
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:""};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+      var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?0b81925365c80d715e10b7ace3669922";
+          var s = document.getElementsByTagName("script")[0]; 
+            s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+  </body>
+</html>

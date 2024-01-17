@@ -1,0 +1,451 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Pytorch JIT学习笔记一(CPP EXPORT) | My Personal Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Liang Zhu">
+    
+    <meta name="description" content="What’s TorchScript?
+TorchScript is a way to create serializable and optimizable models from PyTorch code. Any code written in TorchScript can be saved">
+    
+    
+    
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/pacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/pacman.jpg">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.svg" alt="My Personal Blog" title="My Personal Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="My Personal Blog">My Personal Blog</a></h1>
+				<h2 class="blog-motto">天行健，君子以自强不息。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					
+						<li><a href="/">博客</a></li>
+					
+						<li><a href="/archives">存档</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="text" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:www.zhuliang.net.cn">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+        <!--<script>QIHOO_UNION_F_SLOT={w:120, h:300, ls:"s0b6d141c8d",position:3,display:0,origin:2};</script>
+        <script src="http://s.lianmeng.360.cn/so/f.js" charset="utf-8"></script>-->
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2019/12/17/Pytorch-JIT学习笔记一-CPP-EXPORT/" title="Pytorch JIT学习笔记一(CPP EXPORT)" itemprop="url">Pytorch JIT学习笔记一(CPP EXPORT)</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://www.zhuliang.net.cn" title="Liang Zhu">Liang Zhu</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2019-12-17T14:02:08.000Z" itemprop="datePublished">2019-12-17</time>
+    更新日期:<time datetime="2023-07-20T14:38:05.103Z" itemprop="dateModified">2023-07-20</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#What%E2%80%99s-TorchScript"><span class="toc-number">1.</span> <span class="toc-text">What’s TorchScript?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%86PYTORCH%E6%A8%A1%E5%9E%8B%E8%BD%AC%E6%8D%A2%E4%B8%BATORCH%E8%84%9A%E6%9C%AC"><span class="toc-number">2.</span> <span class="toc-text">将PYTORCH模型转换为TORCH脚本</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Converting-to-Torch-Script-via-Tracing"><span class="toc-number">2.1.</span> <span class="toc-text">Converting to Torch Script via Tracing</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Converting-to-Torch-Script-via-Annotation"><span class="toc-number">2.2.</span> <span class="toc-text">Converting to Torch Script via Annotation</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Serializing-Your-Script-Module-to-a-File"><span class="toc-number">3.</span> <span class="toc-text">Serializing Your Script Module to a File</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Loading-Your-Script-Module-in-C"><span class="toc-number">4.</span> <span class="toc-text">Loading Your Script Module in C++</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#A-Minimal-C-Application"><span class="toc-number">4.1.</span> <span class="toc-text">A Minimal C++ Application</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Executing-the-Script-Module-in-C"><span class="toc-number">5.</span> <span class="toc-text">Executing the Script Module in C++</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Getting-Help-and-Exploring-the-API"><span class="toc-number">6.</span> <span class="toc-text">Getting Help and Exploring the API</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#JIT"><span class="toc-number">7.</span> <span class="toc-text">JIT</span></a></li></ol>
+		</div>
+		
+		<h2 id="What’s-TorchScript"><a href="#What’s-TorchScript" class="headerlink" title="What’s TorchScript?"></a>What’s TorchScript?</h2><blockquote>
+<p>TorchScript is a way to create serializable and optimizable models from PyTorch code. Any code written in TorchScript can be saved from your Python process and loaded in a process where there is no Python dependency.</p>
+</blockquote>
+<blockquote>
+<p>We provide tools to incrementally transition a model from being a pure Python program to a TorchScript program that can be run independently from Python, for instance, in a standalone C++ program. This makes it possible to train models in PyTorch using familiar tools and then export the model to a production environment where it is not a good idea to run models as Python programs for performance and multi-threading reasons.</p>
+</blockquote>
+<h2 id="将PYTORCH模型转换为TORCH脚本"><a href="#将PYTORCH模型转换为TORCH脚本" class="headerlink" title="将PYTORCH模型转换为TORCH脚本"></a>将PYTORCH模型转换为TORCH脚本</h2><blockquote>
+<p>There exist two ways of converting a PyTorch model to Torch Script. The first is known as tracing, a mechanism in which the structure of the model is captured by evaluating it once using example inputs, and recording the flow of those inputs through the model. This is suitable for models that make limited use of control flow. The second approach is to add explicit annotations to your model that inform the Torch Script compiler that it may directly parse and compile your model code, subject to the constraints imposed by the Torch Script language.</p>
+</blockquote>
+<blockquote>
+<p>有两种方法可以将PyTorch模型转换为Torch Script。<br>第一种称为跟踪，一种机制，通过使用示例输入一次评估模型的结构，并通过模型记录这些输入的流量来捕获模型的结构。这适用于限制使用控制流的模型。<br>第二种方法是向模型添加显式注释，以通知Torch脚本编译器它可以直接解析和编译模型代码，受Torch脚本语言强加的约束。</p>
+</blockquote>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://pytorch.org/docs/master/jit.html">TORCHSCRIPT</a></li>
+</ul>
+<h3 id="Converting-to-Torch-Script-via-Tracing"><a href="#Converting-to-Torch-Script-via-Tracing" class="headerlink" title="Converting to Torch Script via Tracing"></a>Converting to Torch Script via Tracing</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torchvision</span><br><span class="line"></span><br><span class="line"><span class="comment"># An instance of your model.</span></span><br><span class="line">model = torchvision.models.resnet18()</span><br><span class="line"></span><br><span class="line"><span class="comment"># An example input you would normally provide to your model&#x27;s forward() method.</span></span><br><span class="line">example = torch.rand(<span class="number">1</span>, <span class="number">3</span>, <span class="number">224</span>, <span class="number">224</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Use torch.jit.trace to generate a torch.jit.ScriptModule via tracing.</span></span><br><span class="line">traced_script_module = torch.jit.trace(model, example)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>The traced ScriptModule can now be evaluated identically to a regular PyTorch module:<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">In[1]: output = traced_script_module(torch.ones(1, 3, 224, 224))</span><br><span class="line">In[2]: output[0, :5]</span><br><span class="line">Out[2]: tensor([-0.2698, -0.0381,  0.4023, -0.3010, -0.0448], grad_fn=&lt;SliceBackward&gt;)</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h3 id="Converting-to-Torch-Script-via-Annotation"><a href="#Converting-to-Torch-Script-via-Annotation" class="headerlink" title="Converting to Torch Script via Annotation"></a>Converting to Torch Script via Annotation</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MyModule</span>(torch.jit.ScriptModule):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, N, M</span>):</span><br><span class="line">        <span class="built_in">super</span>(MyModule, self).__init__()</span><br><span class="line">        self.weight = torch.nn.Parameter(torch.rand(N, M))</span><br><span class="line"></span><br><span class="line"><span class="meta">    @torch.jit.script_method</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, <span class="built_in">input</span></span>):</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">bool</span>(<span class="built_in">input</span>.<span class="built_in">sum</span>() &gt; <span class="number">0</span>):</span><br><span class="line">          output = self.weight.mv(<span class="built_in">input</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">          output = self.weight + <span class="built_in">input</span></span><br><span class="line">        <span class="keyword">return</span> output</span><br><span class="line"></span><br><span class="line">my_script_module = MyModule(<span class="number">2</span>, <span class="number">3</span>)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Creating a new MyModule object now directly produces an instance of ScriptModule that is ready for serialization.</li>
+</ul>
+<h2 id="Serializing-Your-Script-Module-to-a-File"><a href="#Serializing-Your-Script-Module-to-a-File" class="headerlink" title="Serializing Your Script Module to a File"></a>Serializing Your Script Module to a File</h2><ul>
+<li>Serializing Your Script Module to a File<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">traced_script_module.<span class="built_in">save</span>(<span class="string">&quot;model.pt&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h2 id="Loading-Your-Script-Module-in-C"><a href="#Loading-Your-Script-Module-in-C" class="headerlink" title="Loading Your Script Module in C++"></a>Loading Your Script Module in C++</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://pytorch.org/tutorials/advanced/cpp_export.html">LOADING A PYTORCH MODEL IN C++</a></li>
+</ul>
+<h3 id="A-Minimal-C-Application"><a href="#A-Minimal-C-Application" class="headerlink" title="A Minimal C++ Application"></a>A Minimal C++ Application</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;torch/script.h&gt;</span> <span class="comment">// One-stop header.</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;memory&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">const</span> <span class="type">char</span>* argv[])</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (argc != <span class="number">2</span>) &#123;</span><br><span class="line">    std::cerr &lt;&lt; <span class="string">&quot;usage: example-app &lt;path-to-exported-script-module&gt;\n&quot;</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Deserialize the ScriptModule from a file using torch::jit::load().</span></span><br><span class="line">  std::shared_ptr&lt;torch::jit::script::Module&gt; <span class="keyword">module</span> = torch::jit::<span class="built_in">load</span>(argv[<span class="number">1</span>]);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">assert</span>(<span class="keyword">module</span> != <span class="literal">nullptr</span>);</span><br><span class="line">  std::cout &lt;&lt; <span class="string">&quot;ok\n&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Executing-the-Script-Module-in-C"><a href="#Executing-the-Script-Module-in-C" class="headerlink" title="Executing the Script Module in C++"></a>Executing the Script Module in C++</h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Create a vector of inputs.</span></span><br><span class="line">std::vector&lt;torch::jit::IValue&gt; inputs;</span><br><span class="line">inputs.<span class="built_in">push_back</span>(torch::<span class="built_in">ones</span>(&#123;<span class="number">1</span>, <span class="number">3</span>, <span class="number">224</span>, <span class="number">224</span>&#125;));</span><br><span class="line"></span><br><span class="line"><span class="comment">// Execute the model and turn its output into a tensor.</span></span><br><span class="line">at::Tensor output = <span class="keyword">module</span>-&gt;forward(inputs).<span class="built_in">toTensor</span>();</span><br><span class="line"></span><br><span class="line">std::cout &lt;&lt; output.<span class="built_in">slice</span>(<span class="comment">/*dim=*/</span><span class="number">1</span>, <span class="comment">/*start=*/</span><span class="number">0</span>, <span class="comment">/*end=*/</span><span class="number">5</span>) &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Getting-Help-and-Exploring-the-API"><a href="#Getting-Help-and-Exploring-the-API" class="headerlink" title="Getting Help and Exploring the API"></a>Getting Help and Exploring the API</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://pytorch.org/cppdocs/">The PyTorch C++ API documentation</a></li>
+<li><a target="_blank" rel="noopener" href="https://pytorch.org/docs/">The PyTorch Python API documentation</a></li>
+<li><a target="_blank" rel="noopener" href="https://pytorch.org/tutorials/advanced/cpp_export.html">LOADING A PYTORCH MODEL IN C++</a></li>
+<li><a target="_blank" rel="noopener" href="https://pytorch.org/docs/master/jit.html">The Torch Script reference</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/pytorch/pytorch/tree/master/test/custom_operator">custom_operator</a></li>
+</ul>
+<h2 id="JIT"><a href="#JIT" class="headerlink" title="JIT"></a>JIT</h2><blockquote>
+<p>TorchScript is a subset of Python that can either be written directly (using the @script annotations) or generated automatically from Python code via tracing. When using tracing, code is automatically converted into this subset of Python by recording only the actual operators on tensors and simply executing and discarding the other surrounding Python code.</p>
+</blockquote>
+<blockquote>
+<p>When writing TorchScript directly using @script annotations, the programmer must only use the subset of Python supported in TorchScript. This section documents what is supported in TorchScript as if it were a language reference for a stand alone language. Any features of Python not mentioned in this reference are not part of TorchScript.</p>
+</blockquote>
+<blockquote>
+<p>As a subset of Python any valid TorchScript function is also a valid Python function. This makes it possible to remove the @script annotations and debug the function using standard Python tools like pdb. The reverse is not true: there are many valid python programs that are not valid TorchScript programs. Instead, TorchScript focuses specifically on the features of Python that are needed to represent neural network models in Torch.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PYTORCH_JIT=1</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Setting the environment variable PYTORCH_JIT=0 will disable all script and tracing annotations. If there is hard-to-debug error in one of your ScriptModules, you can use this flag to force everything to run using native Python. This allows the use of tools like pdb to debug code.</p>
+</blockquote>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/PyTorch/">PyTorch</a>
+  </div>
+
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://www.zhuliang.net.cn/2019/12/17/Pytorch-JIT%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B8%80-CPP-EXPORT/" data-title="Pytorch JIT学习笔记一(CPP EXPORT) | My Personal Blog" data-tsina="2726688057" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2024/01/17/Laravel-The-PHP-Framework-for-Web-Artisans/" title="Laravel - The PHP Framework for Web Artisans">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  Laravel - The PHP Framework for Web Artisans</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2019/12/08/VMware-Workstation-Pro安装macOS虚拟机/"  title="VMware Workstation Pro安装macOS虚拟机">
+ <strong>NEXT:</strong><br/> 
+ <span>VMware Workstation Pro安装macOS虚拟机
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#What%E2%80%99s-TorchScript"><span class="toc-number">1.</span> <span class="toc-text">What’s TorchScript?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%86PYTORCH%E6%A8%A1%E5%9E%8B%E8%BD%AC%E6%8D%A2%E4%B8%BATORCH%E8%84%9A%E6%9C%AC"><span class="toc-number">2.</span> <span class="toc-text">将PYTORCH模型转换为TORCH脚本</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Converting-to-Torch-Script-via-Tracing"><span class="toc-number">2.1.</span> <span class="toc-text">Converting to Torch Script via Tracing</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Converting-to-Torch-Script-via-Annotation"><span class="toc-number">2.2.</span> <span class="toc-text">Converting to Torch Script via Annotation</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Serializing-Your-Script-Module-to-a-File"><span class="toc-number">3.</span> <span class="toc-text">Serializing Your Script Module to a File</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Loading-Your-Script-Module-in-C"><span class="toc-number">4.</span> <span class="toc-text">Loading Your Script Module in C++</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#A-Minimal-C-Application"><span class="toc-number">4.1.</span> <span class="toc-text">A Minimal C++ Application</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Executing-the-Script-Module-in-C"><span class="toc-number">5.</span> <span class="toc-text">Executing the Script Module in C++</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Getting-Help-and-Exploring-the-API"><span class="toc-number">6.</span> <span class="toc-text">Getting Help and Exploring the API</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#JIT"><span class="toc-number">7.</span> <span class="toc-text">JIT</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/技术交流/" title="技术交流">技术交流<sup>7</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/C/" title="C++">C++<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Git/" title="Git">Git<sup>2</sup></a></li>
+		
+			<li><a href="/tags/INTEL/" title="INTEL">INTEL<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>6</sup></a></li>
+		
+			<li><a href="/tags/PHP/" title="PHP">PHP<sup>1</sup></a></li>
+		
+			<li><a href="/tags/PyTorch/" title="PyTorch">PyTorch<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Windows/" title="Windows">Windows<sup>1</sup></a></li>
+		
+			<li><a href="/tags/base64/" title="base64">base64<sup>2</sup></a></li>
+		
+			<li><a href="/tags/boost/" title="boost">boost<sup>2</sup></a></li>
+		
+			<li><a href="/tags/os-kernel/" title="os-kernel">os-kernel<sup>1</sup></a></li>
+		
+			<li><a href="/tags/极速软件/" title="极速软件">极速软件<sup>1</sup></a></li>
+		
+			<li><a href="/tags/网络服务/" title="网络服务">网络服务<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="rsspart">
+	<a href="" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="https://www.aia.com.cn/zh-cn/index.html" target="_blank" title="友邦人寿官方网站">友邦人寿官方网站</a></li>
+      <!--<li><a href="http://home.jisuonline.com" target="_blank" title="极速在线官方网站">极速在线官方网站</a></li>
+      <li><a href="http://www.zhuliang.net.cn/service/index.html" target="_blank" title="极速在线旗下统一服务编程框架">极速在线旗下统一服务编程框架</a></li>
+      <li><a href="https://www.haosou.com" target="_blank" title="Hexo">好搜(原360搜索)</a></li>
+      <li><a href="/wedding/360.html" target="_blank" title="Hexo">360公司第三届集体婚礼</a></li>-->
+    </ul>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hey, I&#39;m Liang Zhu. A NLP Researcher and Developer in Qihoo 360. <br/>
+			Natural Language Processing and Data Mining are my interests which I&#39;d like to share with you at this blog.</p>
+	</section>
+	 
+	<div class="social-font clearfix">
+		
+		<a href="http://weibo.com/2726688057" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/zlljysmstar" target="_blank" title="github"></a>
+		
+		
+		<a href="https://www.facebook.com/bjzhuliang" target="_blank" title="facebook"></a>
+		
+		
+	</div>
+		<p class="copyright">Powered by <a href="http://www.zhuliang.net.cn" target="_blank" title="zhuliang.net.cn">zhuliang.net.cn</a> and Theme by <a href="https://github.com/zlljysmstar/x-speed" target="_blank" title="X-Speed">X-Speed</a> © 2024 
+		
+		<a href="http://www.zhuliang.net.cn" target="_blank" title="Liang Zhu">Liang Zhu</a>
+		
+        <a target="_blank" href="https://beian.miit.gov.cn" style="display:inline-block;text-decoration:none;"><span style="font-family:微软雅黑; padding-left:10px;">京ICP备14057753号-3</span></a>
+        <div style="width:300px;margin:0 auto; padding:20px 0;">
+          <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=11010502042547" style="display:inline-block;text-decoration:none;height:20px;line-height:20px;"><img src="/download/beian/beian.png" style="float:left;"/><p style="float:left;height:20px;line-height:20px;margin: 0px 0px 0px 5px; color:#939393;">京公网安备11010502042547号</p></a>
+        </div>
+		</p>
+        <!--<script>QIHOO_UNION_F_SLOT={w:500, h:48, ls:"s5bcb0a038f",position:6,display:1,origin:0};</script>
+        <script src="http://s.lianmeng.360.cn/so/f.js" charset="utf-8"></script>-->
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:""};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+      var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?0b81925365c80d715e10b7ace3669922";
+          var s = document.getElementsByTagName("script")[0]; 
+            s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+  </body>
+</html>
